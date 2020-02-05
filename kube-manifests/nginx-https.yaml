@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: debug-app-ingress-https
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt-production
+    kubernetes.io/tls-acme: "true"
+spec:
+  rules:
+  - host: "{{NGINX_HOST}}"
+    http:
+      paths:
+      - backend:
+          serviceName: debug-service
+          servicePort: 8080
+        path: /
+  tls:
+  - hosts:
+    - "{{NGINX_HOST}}"
+    secretName: nginx-tls

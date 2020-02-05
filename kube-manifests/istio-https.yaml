@@ -1,0 +1,53 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: debug-app-gateway-https
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "{{ISTIO_HTTPS_URL}}"
+      tls:
+        httpsRedirect: true
+    - port:
+        number: 443
+        name: https-debug-app
+        protocol: HTTPS
+      hosts:
+        - "{{ISTIO_HTTPS_URL}}"
+      tls:
+        credentialName: defaultingressgateway-certs-istio
+        mode: SIMPLE
+        privateKey: sds
+        serverCertificate: sds
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: debug-virtual-service-https
+spec:
+  hosts:
+  - "{{ISTIO_HTTPS_URL}}"
+  gateways:
+  - debug-app-gateway-https
+  http:
+  - route:
+    - destination:
+        host: debug-service
+        port:
+          number: 8080
+---
+apiVersion: "networking.istio.io/v1alpha3"
+kind: "DestinationRule"
+metadata:
+  name: "debug-app-dr-https"
+spec:
+  host: "{{ISTIO_HTTPS_URL}}"
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL

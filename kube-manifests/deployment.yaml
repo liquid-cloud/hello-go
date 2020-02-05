@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: debug-service
+  labels:
+    app: debug-app
+    service: debug-service
+spec:
+  ports:
+  - port: 8080
+    name: http-8080
+  selector:
+    app: debug-app
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: simple-debug
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: debug-app-v1
+  labels:
+    app: debug-app
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: debug-app
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: debug-app
+        version: v1
+    spec:
+      serviceAccountName: simple-debug
+      containers:
+      - name: debug-container
+        image: {{IMAGE_URL}}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
